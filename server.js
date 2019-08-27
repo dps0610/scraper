@@ -17,18 +17,18 @@ app.engine("handlebars",exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 
-mongoose.connect("mongodb://localhost/populatedb", { useNewUrlParser: true});
+mongoose.connect("mongodb://localhost:27017/populatedb", { useNewUrlParser: true});
 
 //Routes
 app.get("/scrape", function(req,res) {
-    axios.get("https://www.thefourthperiod.com/rumours").then(function(response){
+    axios.get("ign.com").then(function(response){
       var $ = cheerio.load(response.data);
 
-      $("image-card").each(function(i, element) {
+      $("section.content-feed-grid").each(function(i, element) {
         var result = {};
 
         result.title = $(this)
-          .children("p")
+          .children("span.item-title-link")
           .text();
         result.link = $(this)
           .children("a")
