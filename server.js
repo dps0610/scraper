@@ -21,26 +21,26 @@ mongoose.connect("mongodb://localhost:27017/populatedb", { useNewUrlParser: true
 
 //Routes
 app.get("/scrape", function(req,res) {
-    axios.get("ign.com").then(function(response){
+    axios.get("http://wwww.ign.com").then(function(response){
       var $ = cheerio.load(response.data);
 
-      $("section.content-feed-grid").each(function(i, element) {
+      $(".item-details").each(function(i, element) {
+        if(!$(this).children("a").attr("href")) return
         var result = {};
-
+        console.log($(this).text());
         result.title = $(this)
-          .children("span.item-title-link")
+          .find("span")
           .text();
-        result.link = $(this)
-          .children("a")
-          .attr("href");
-        
+        result.link = $(this).children("a").attr("href")
+
         db.Article.create(result)
           .then(function(dbArticle) {
-            
+            res.end()
           })
           .catch(function(err) {
             console.log(err);
           });
+        console.log($(this).children("a").attr("href"))
       });
 
       res.send("Scrape Complete")
@@ -57,9 +57,10 @@ app.get("/articles", function(req, res) {
       });
 });
 
+//issue with getting id from mongoose 
 app.get("/articles/:id", function(req, res) {
     db.Article.findOne({ _id: req.params.id })
-      .populate("comment")
+      .populate("comments")
       .then(function(dbArticle) {
         res.json(dbArticle);
       })
@@ -69,7 +70,7 @@ app.get("/articles/:id", function(req, res) {
 });
 
 app.post("/articles/:id", function(req, res) {
-    db.Note.create(req.body)
+    db.Comment.create(req.body)
       .then(function(dbNote) {
         return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
       })
